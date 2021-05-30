@@ -7,7 +7,7 @@ WARNING
 ========
 This is a beta version, at the time of writing it was only tested on a TS-453A.
 
-This script is only for QNAP-devices which running TrueNAS CORE (stock QNAP firmware is not supported!).
+This script is only for QNAP-devices running TrueNAS CORE (stock QNAP firmware is not supported!).
 
 SCOPE
 ======
