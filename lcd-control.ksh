@@ -1,6 +1,6 @@
 #!/usr/local/bin/ksh93
 #
-# lcd-control, version 0.6
+# lcd-control 
 # Copyright (C) 2014, written by Dirk Brenken (dibdot@gmail.com)
 #
 # LICENSE
@@ -20,9 +20,8 @@
 #
 # WARNING
 # ========
-# This is a developer version, at the time of writing it was only tested on a few QNAP devices (TS-439, TS-459, TS-509).
-# Even though I use it in my productive environment, I strongly recommend that you only use it for further testing and debugging.
-# This script is only for QNAP-devices which running debian (stock QNAP firmware currently not supported!).
+# This is a developer version, at the time of writing it was only tested on a few QNAP devices (TS-453A).
+# This script is only for QNAP-devices running TrueNAS CORE (stock QNAP firmware currently not supported!).
 #
 # SCOPE
 # ======
@@ -36,13 +35,11 @@
 #
 # REQUIREMENTS
 # =============
-# - QNAP device with LCD display, migrated to debian
-# - required debian package: ksh
-# - optional debian package: hddtemp (to use function library sample)
+# - QNAP device with LCD display, migrated to TrueNAS CORE
 #
 # GET STARTED
 # ============
-# Make this script executable (chmod 755)
+# Make this script executable (chmod a+w)
 # Adjust script parameters to your needs (see comments for all configurable options below)
 # Rename & adjust distributed sample function library script to your needs
 # Start the script ...
@@ -52,24 +49,6 @@
 # To start the script automatically during boot, simply add an appropriate entry to /etc/rc.local
 # example: /<path>/lcd-control.ksh &
 # Please modify INP_DIR and LOG_DIR to <path> accordingly
-#
-# CHANGELOG
-# ==========
-# version 0.1: initial test release
-# version 0.2: fix trap/exit issues
-# version 0.3: add automatic reload of message array after lights come back (thanks to Justin Duplessis)
-# version 0.4: add GNU General Public License
-# version 0.5: add/enhance rolling index navigation with frontpanel buttons
-# version 0.6: add error handling & logging to stdout/logfile (incl. logfile housekeeping) plus various fixes/enhancements
-#
-# TODO
-# =====
-# - bugfixes
-# - handle external events (command line mode)
-# - ...
-#
-# Have fun!
-# Dirk
 #
 
 # enable shell debug mode

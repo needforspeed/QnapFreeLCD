@@ -1,8 +1,7 @@
 #!/usr/local/bin/ksh93
 #
-# function library sample for lcd-control, version 0.2
+# function library sample for lcd-control 
 # original author Dirk Brenken (dibdot@gmail.com)
-# modified by Justin Duplessis (drfoliberg@gmail.com)
 #
 #   LICENSE
 #   ============
@@ -21,10 +20,9 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-#
 # GET STARTED
 # ============
-# This is a sample script to gather and prepare system information for a QNAP TS-439 box with 2x16 LCD display.
+# This is a sample script to gather and prepare system information for a QNAP TS-453A box with 2x16 LCD display.
 # It's a helper script which will be automatically sourced by lcd-control.ksh during runtime as input.
 # All query results have to fill up the "ROW" array and increment the array index accordingly.
 # Please make sure, that the result sets match your LCD dimensions/rows,
@@ -33,14 +31,6 @@
 # therefore it might be a good idea to test your queries and result sets stand alone before lcd-control.ksh integration.
 # Feel free to build your own system queries and result sets (see examples below).
 # Contributions for other QNAP boxes or better examples to enlarge this function library are very welcome!
-#
-# CHANGELOG
-# ==========
-# version 0.1: initial test release
-# version 0.2: added usable functions for out-of-box usage
-#
-# Have fun!
-# 
 
 # enable shell debug mode
 #
