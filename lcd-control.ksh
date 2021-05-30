@@ -1,4 +1,4 @@
-#!/usr/bin/ksh
+#!/usr/local/bin/ksh93
 #
 # lcd-control, version 0.6
 # Copyright (C) 2014, written by Dirk Brenken (dibdot@gmail.com)
@@ -116,7 +116,7 @@ INP_ID=0
 # LCD_MAXCOL  => number of display cols (default:16)
 # LCD_TIMEOUT => timeout of the LCD in seconds (default: 300), "0" (without quotes) to disable LCD timeout
 #
-LCD_DEV="/dev/ttyS1"
+LCD_DEV="/dev/cuau1"
 LCD_BAUD=1200
 LCD_MAXROW=2
 LCD_MAXCOL=16
@@ -274,7 +274,7 @@ trap "f_trap_exit" 0 1 2 3 10 11 15
 
 # prepare serial communication (send & receive)
 #
-"${TTY_PRG}" -F "${LCD_DEV}" ${LCD_BAUD} cread cbreak olcuc time ${TTY_TIMEOUT} min ${TTY_MIN}
+"${TTY_PRG}" -f "${LCD_DEV}" ${LCD_BAUD} cread cbreak time ${TTY_TIMEOUT} min ${TTY_MIN}
 if (( $? == 0 ))
 then
     LOG_MSG[0]="Info  => serial port initialized!"

@@ -1,4 +1,4 @@
-#!/usr/bin/ksh
+#!/usr/local/bin/ksh93
 #
 # function library sample for lcd-control, version 0.2
 # original author Dirk Brenken (dibdot@gmail.com)
@@ -62,8 +62,8 @@ set -A ROW
 # get current index count as start value
 INDEX=${#ROW[@]}
 # query
-HOST="$(hostname)"
-IP=$(ifconfig | grep "inet addr" | cut -d: -f2 | cut -f 1 -d " " | grep -v "127.0.")
+HOST="$(hostname -s)"
+IP=$(ifconfig igb1 | grep "inet " | cut -f 2 -d " " | grep -v "127.0.")
 # result
 ROW[${INDEX}]="${HOST}"
 (( INDEX ++ ))
@@ -78,15 +78,10 @@ ROW[${INDEX}]="${IP}"
 INDEX=${#ROW[@]}
 # query
 OS_LINE="Unknown";
-if [ -f /etc/lsb-release ];then
-	OS_LINE=$(cat /etc/lsb-release | grep -i DISTRIB_DESCRIPTION | cut -d "\"" -f 2)
-elif [ -f /etc/os-release ];then
-	echo "/etc/lsb-release not found, using /etc/os-release !"
-	OS_NAME=$(cat /etc/os-release | grep ^ID= | cut -c 4-)
-	OS_VERSION=$(cat /etc/os-release | grep -i ^Version= | cut -d "\"" -f 2)
-	OS_LINE="$OS_NAME $OS_VERSION"
+if [ -f /etc/version ];then
+	OS_LINE=$(cut -d' ' -f1 /etc/version)
 else
-	echo "Could not find proper file to retreive OS info."
+	echo "Could not find proper file to retrieve OS info."
 fi
 #kernel info
 KERNEL=$(uname -r)
@@ -96,32 +91,11 @@ ROW[${INDEX}]=$OS_LINE
 ROW[${INDEX}]="${KERNEL}"
 
 #-------------------------------------------------------------------------------
-# 3. root disk space
-# get volume/space information
-#-------------------------------------------------------------------------------
-#
-# get current index count as start value
-INDEX=${#ROW[@]}
-# query
-df -hlT |\
-egrep "^/dev.*(ext3|ext4)" |\
-sort -k7 |\
-while read device type space used free percent mount
-do
-    # result
-    ROW[${INDEX}]="${mount}  ${type}"
-    (( INDEX ++ ))
-    ROW[${INDEX}]="${space}  ${free}  ${percent}"
-    (( INDEX ++ ))
-done
-
-#-------------------------------------------------------------------------------
-# 4. Pool info (zfs or mdadm)
-# detect which is installed and hoe many pools are present
+# 4. Pool info (zfs)
+# detect which is installed and how many pools are present
 #-------------------------------------------------------------------------------
 #
 ZFS_POOLS=0
-MDADM_POOLS=0
 R_DEVICES=""
 
 if (( $(whereis zfs | wc -w) != 1 ))
@@ -130,11 +104,6 @@ then
 	echo "Found $ZFS_POOLS zfs pools !"
 fi
 
-if (( $(whereis mdadm | wc -w) != 1 ))
-then
-	MDADM_POOLS=$(ls -1 /dev/md*  | egrep /dev/md'[0-9]+' | wc -l)
-	echo "Found $MDADM_POOLS mdadm pools !"
-fi
 
 #-------------------------------------------------------------------------------
 # 4.1 Pool info zfs
@@ -148,42 +117,17 @@ then
 	# query
 	PREV_TOTAL=0
 	PREV_IDLE=0
-	FREE=$(zpool list -H | cut -f 4)
-	HEALTH=$(zpool list -H | cut -f 7)
-	CAP=$(zpool list -H | cut -f 5)
+	FREE=$(zpool list -H data | cut -f 4)
+	HEALTH=$(zpool list -H data | cut -f 10)
+	CAP=$(zpool list -H data | cut -f 8)
 	# result
-	ROW[${INDEX}]="$(zpool list -H | cut -f 1) $(zpool list -H | cut -f 2)"
+	ROW[${INDEX}]="$(zpool list -H data | cut -f 1) $(zpool list -H data | cut -f 2)"
 	(( INDEX ++ ))
-	ROW[${INDEX}]="$FREE $CAP-$HEALTH"
+	ROW[${INDEX}]="$FREE $HEALTH"
 	(( INDEX ++ ))
-	R_DEVICES=$(zpool status | grep sd | awk '{print "/dev/"$1}')
+	R_DEVICES=$(ls -l /dev/ada[0-9] | awk '{print$9}')
+	echo $R_DEVICES
 fi
-
-#-------------------------------------------------------------------------------
-# 4.2 Mdadm info
-# get mdadm info (btw you should use ZFS or Btrfs)
-# TODO add support for multiple pools ?
-#-------------------------------------------------------------------------------
-#
-# get current index count as start value
-if (( $MDADM_POOLS > 0 ))
-then
-	for ARRAY in $(ls -1 /dev/md*  | egrep /dev/md'[0-9]+')
-	do
-		INDEX=${#ROW[@]}
-		# query
-		MDADM_INFO=$(mdadm -D $ARRAY)
-		R_LEVEL=$(echo "$MDADM_INFO"| grep -o "raid[0-9].*")
-		R_STATE=$(echo "$MDADM_INFO"| grep -o "State :.*")
-		R_DEVICES=$(echo "$MDADM_INFO"| grep -o " /dev/s.*")
-		# result
-		ROW[${INDEX}]="$(echo $ARRAY | cut -d "/" -f 3) : ${R_LEVEL}"
-		(( INDEX ++ ))
-		ROW[${INDEX}]="${R_STATE}"
-		(( INDEX ++ ))
-	done
-fi
-
 
 #-------------------------------------------------------------------------------
 # 5. HDD temps
@@ -195,13 +139,11 @@ if [ "$R_DEVICES" != "" ]; then
 	INDEX=${#ROW[@]}
 	# query
 	DEVICES="${R_DEVICES}"
-	DRIVE_TEMPS=$(echo $(hddtemp -n ${DEVICES}))
-	TEMP_MAX=$(echo $DRIVE_TEMPS | sed -e 's/\s\+/\n/g' | sort -n | tail -n 1)
-	TEMP_MIN=$(echo $DRIVE_TEMPS | sed -e 's/\s\+/\n/g' | sort -n | head -n 1)
+	DRIVE_TEMPS=$(smartctl -A ${DEVICES} | grep Temperature_Celsius | awk '{print$10}')
 	# result
-	ROW[${INDEX}]="Drive Temp"
+	ROW[${INDEX}]="Drive Temps"
 	(( INDEX ++ ))
-	ROW[${INDEX}]="MIN: $TEMP_MIN MAX: $TEMP_MAX"
+	ROW[${INDEX}]="$DRIVE_TEMPS"
 	(( INDEX ++ ))
 else
 	echo "No devices were found to probe for temperature !"
@@ -219,7 +161,7 @@ PREV_IDLE=0
 # result
 ROW[${INDEX}]="Load Average"
 (( INDEX ++ ))
-ROW[${INDEX}]=$(cat /proc/loadavg | cut -d " " -f 1,2,3)
+ROW[${INDEX}]=$(uptime | awk -F'load averages: ' '{ print $2 }')
 (( INDEX ++ ))
 
 #-------------------------------------------------------------------------------
@@ -251,5 +193,5 @@ PREV_IDLE=0
 # result
 ROW[${INDEX}]="Last Updated"
 (( INDEX ++ ))
-ROW[${INDEX}]=$(date +"%T %D")
+ROW[${INDEX}]=$(date +"%H:%M %D")
 (( INDEX ++ ))
