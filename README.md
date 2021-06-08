@@ -6,7 +6,7 @@ Original author Dirk Brenken (dibdot@gmail.com)
 WARNING
 ========
 This is a beta version, at the time of writing it was only tested on a TS-453A.
-https://www.techpowerup.com/review/qnap-ts-453a/single-page.html#specifications
+https://www.techpowerup.com/review/qnap-ts-453a/
 
 This script is only for QNAP-devices running TrueNAS CORE (stock QNAP firmware is not supported!).
 
